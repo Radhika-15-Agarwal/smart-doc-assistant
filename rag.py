@@ -62,15 +62,16 @@ def load_vector_store():
 
 def answer_question(question, vector_store):
 
-    retriever = vector_store.as_retriever(
-        search_type="mmr",
-        search_kwargs={"k": 10}
+    docs = retrieve_documents(
+        question,
+        vector_store
     )
 
-    docs = retriever.invoke(question)
+    context = build_context(docs)
 
-    context = "\n\n".join(
-        doc.page_content for doc in docs
+    answer = generate_answer(
+        question,
+        context
     )
 
     sources = sorted(
@@ -79,6 +80,29 @@ def answer_question(question, vector_store):
             for doc in docs
         )
     )
+
+    return answer, sources
+
+def retrieve_documents(question, vector_store):
+
+    retriever = vector_store.as_retriever(
+        search_type="mmr",
+        search_kwargs={
+            "k": 10,
+            "fetch_k": 20
+        }
+    )
+
+    return retriever.invoke(question)
+
+def build_context(docs):
+
+    return "\n\n".join(
+        doc.page_content
+        for doc in docs
+    )
+
+def generate_answer(question, context):
 
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash"
@@ -96,4 +120,4 @@ def answer_question(question, vector_store):
 
     response = llm.invoke(prompt)
 
-    return response.content, sources
+    return response.content
