@@ -5,7 +5,7 @@ load_dotenv()
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 
@@ -48,6 +48,17 @@ def create_vector_store(chunks):
 
     return vector_store
 
+def load_vector_store():
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
+    return Chroma(
+        persist_directory="./chroma_db",
+        embedding_function=embeddings
+    )
+
 
 def answer_question(question, vector_store):
 
@@ -62,11 +73,12 @@ def answer_question(question, vector_store):
         doc.page_content for doc in docs
     )
 
-    sources = []
-
-    for doc in docs:
-        page = doc.metadata.get("page", "Unknown")
-        sources.append(f"Page {page}")
+    sources = sorted(
+        set(
+            f"Page {doc.metadata.get('page', 0) + 1}"
+            for doc in docs
+        )
+    )
 
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash"

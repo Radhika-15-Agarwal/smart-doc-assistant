@@ -2,13 +2,11 @@ from rag import (
     load_pdfs,
     split_documents,
     create_vector_store,
+    load_vector_store,
     answer_question
 )
 
-docs = load_pdfs()
-chunks = split_documents(docs)
-
-vector_store = create_vector_store(chunks)
+vector_store = load_vector_store()
 
 question = input("Ask a question: ")
 
