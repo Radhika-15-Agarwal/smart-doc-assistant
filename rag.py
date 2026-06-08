@@ -7,6 +7,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 def load_pdfs(folder_path="data"):
     documents = []
@@ -46,3 +47,41 @@ def create_vector_store(chunks):
     )
 
     return vector_store
+
+
+def answer_question(question, vector_store):
+
+    retriever = vector_store.as_retriever(
+        search_type="mmr",
+        search_kwargs={"k": 10}
+    )
+
+    docs = retriever.invoke(question)
+
+    context = "\n\n".join(
+        doc.page_content for doc in docs
+    )
+
+    sources = []
+
+    for doc in docs:
+        page = doc.metadata.get("page", "Unknown")
+        sources.append(f"Page {page}")
+
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash"
+    )
+
+    prompt = f"""
+    Answer ONLY using the provided context.
+
+    Context:
+    {context}
+
+    Question:
+    {question}
+    """
+
+    response = llm.invoke(prompt)
+
+    return response.content, sources
