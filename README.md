@@ -1,15 +1,17 @@
 # Smart PDF Assistant
 
-An agentic PDF question-answering system built using LangGraph, ChromaDB, HuggingFace embeddings, and Gemini.
+An agentic PDF question-answering system built using LangGraph, ChromaDB, HuggingFace embeddings, Gemini, and Streamlit.
 
 ## Features
 
-* Load and process PDF documents
-* Semantic search using vector embeddings
-* Retrieval-Augmented Generation (RAG)
+* PDF upload support
+* Multi-PDF support
+* Semantic search with ChromaDB
+* Agentic retrieval workflow using LangGraph
 * Query rewriting for improved retrieval
 * Retrieval quality evaluation
-* Source-aware answers
+* Gemini-powered answers
+* Streamlit web interface
 
 ## Tech Stack
 
@@ -19,6 +21,7 @@ An agentic PDF question-answering system built using LangGraph, ChromaDB, Huggin
 * ChromaDB
 * HuggingFace Embeddings
 * Google Gemini
+* Streamlit
 
 ## Architecture
 
@@ -59,6 +62,8 @@ smart-doc-assistant/
 
 ├── app.py
 
+├── streamlit_app.py
+
 ├── rag.py
 
 ├── graph.py
@@ -71,17 +76,9 @@ smart-doc-assistant/
 
 └── chroma_db/
 
-## Example Questions
-
-* What is the objective of the project?
-* Who are the members of Group 1?
-* What problem does the project solve?
-* What are the implementation phases?
-
 ## Future Improvements
 
-* Streamlit UI
-* Multi-PDF support
+* Source citations and page highlighting
 * Local LLM support via Ollama
-* Better retrieval grading
-* Citation highlighting
+* Conversational memory
+* Document summarization mode
