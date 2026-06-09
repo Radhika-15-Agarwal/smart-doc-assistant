@@ -104,20 +104,24 @@ def build_context(docs):
 
 def generate_answer(question, context):
 
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash"
-    )
+    try:
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash"
+        )
 
-    prompt = f"""
-    Answer ONLY using the provided context.
+        prompt = f"""
+        Answer ONLY using the provided context.
 
-    Context:
-    {context}
+        Context:
+        {context}
 
-    Question:
-    {question}
-    """
+        Question:
+        {question}
+        """
 
-    response = llm.invoke(prompt)
+        response = llm.invoke(prompt)
 
-    return response.content
+        return response.content
+
+    except Exception:
+        return context[:1000]

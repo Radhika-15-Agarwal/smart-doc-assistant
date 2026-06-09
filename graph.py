@@ -14,21 +14,8 @@ class GraphState(TypedDict):
     documents: list
     context: str
     answer: str
-
-
-def retrieve_node(state: GraphState):
-
-    docs = retrieve_documents(
-        state["question"],
-        vector_store
-    )
-
-    context = build_context(docs)
-
-    return {
-        "documents": docs,
-        "context": context
-    }
+    needs_retry: bool
+    retry_count: int
 
 
 def answer_node(state: GraphState):
@@ -61,10 +48,52 @@ def build_graph(vector_store):
     workflow = StateGraph(GraphState)
 
     workflow.add_node("retrieve", retrieve)
+    workflow.add_node("grade", grade_node)
+    workflow.add_node("rewrite", rewrite_node)
     workflow.add_node("answer", answer_node)
 
     workflow.add_edge(START, "retrieve")
-    workflow.add_edge("retrieve", "answer")
+
+    workflow.add_edge("retrieve", "grade")
+
+    workflow.add_conditional_edges(
+        "grade",
+        route_after_grade,
+        {
+            "rewrite": "rewrite",
+            "answer": "answer"
+        }
+    )
+
+    workflow.add_edge("rewrite", "retrieve")
+
     workflow.add_edge("answer", END)
 
     return workflow.compile()
+
+def grade_node(state):
+    context = state["context"]
+    needs_retry = len(context) < 1000
+    return {
+        "needs_retry": needs_retry
+    }
+
+def route_after_grade(state):
+    if state.get("retry_count", 0) >= 1:
+        return "answer"
+    if state["needs_retry"]:
+        return "rewrite"
+    return "answer"
+
+def rewrite_node(state):
+
+    return {
+        "question": (
+            f"Provide detailed information about "
+            f"{state['question']}"
+        ),
+        "retry_count": state.get(
+            "retry_count",
+            0
+        ) + 1
+    }
